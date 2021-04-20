@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+  <body>
+    <script>
+      const { ipcRenderer } = require('electron')
+      ipcRenderer.on('audio-play', (event, src) => {
+        const sound = new Audio()
+        sound.src = src
+        sound.oncanplay = () => sound.play()
+      })
+    </script>
+  </body>
+</html>

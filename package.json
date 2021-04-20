@@ -1,48 +1,93 @@
 {
-  "name": "majsoul-plus-client",
-  "version": "1.10.7-alpha.2",
+  "name": "majsoul-plus",
+  "version": "2.0.1",
   "productName": "Majsoul Plus",
-  "author": "MajsoulPlus Team",
+  "author": "Majsoul Plus Team",
   "description": "Majsoul Plus",
-  "main": "index.js",
+  "main": "./dist/index.js",
   "scripts": {
-    "start": "cross-env NODE_ENV=development electron . --enable_logging",
-    "pack": "npm run lint && npm run build",
-    "lint": "standard --fix | snazzy",
-    "build": "npm run build-win32 && npm run build-linux && npm run build-darwin",
-    "build-win32": "electron-packager . Majsoul_Plus  --platform=win32 --arch=all --out ./build/unpacked --ignore=build --overwrite --icon=bin/icons/icon.ico",
-    "build-linux": "electron-packager . Majsoul_Plus  --platform=linux --arch=all --out ./build/unpacked --ignore=build --overwrite --icon=bin/icons/icon.png",
-    "build-darwin": "electron-builder --mac",
-    "test": "echo \"Error: no test specified\""
+    "sass": "node-sass -q assets/manager/ -o assets/manager/",
+    "pre-build": "tsc && yarn sass && node build.js",
+    "debug": "cross-env NODE_ENV=development run-electron .",
+    "debug:server": "cross-env NODE_ENV=development SERVER_ONLY=1 run-electron .",
+    "debug:detailed": "cross-env NODE_ENV=development run-electron . --enable-logging --v=1 --disable-gpu",
+    "start": "yarn pre-build && yarn debug",
+    "start:detailed": "yarn pre-build && yarn debug:detailed",
+    "dist": "yarn pre-build && electron-builder --x64 --ia32 --publish onTagOrDraft",
+    "build": "yarn pre-build && electron-builder --x64 --ia32",
+    "lint": "gts check",
+    "lint:fix": "gts fix",
+    "clean": "gts clean"
   },
   "build": {
     "productName": "Majsoul Plus",
+    "artifactName": "Majsoul_Plus-${version}-${platform}-${arch}.${ext}",
     "directories": {
-      "output": "build/packed"
+      "output": "build/"
+    },
+    "files": [
+      "dist/**/*"
+    ],
+    "fileAssociations": {
+      "ext": [
+        "mspr",
+        "mspe",
+        "mspm",
+        "mspt"
+      ],
+      "description": "Majsoul Plus ResourcePack/Extension/Tool",
+      "icon": "assets/bin/icons/icon.ico"
+    },
+    "afterAllArtifactBuild": "afterAllArtifactBuild.js",
+    "win": {
+      "icon": "assets/bin/icons/icon.ico",
+      "target": [
+        "nsis",
+        "zip"
+      ]
+    },
+    "nsis": {
+      "artifactName": "Majsoul_Plus-${version}-${platform}-Setup.${ext}"
     },
     "mac": {
-      "icon": "bin/icons/icon.icns",
-      "asar": false,
-      "artifactName": "Majsoul_Plus-${platform}-${arch}.${ext}"
+      "icon": "assets/bin/icons/icon.icns",
+      "darkModeSupport": true,
+      "target": [
+        "dmg"
+      ]
+    },
+    "linux": {
+      "icon": "assets/bin/icons/icon.png",
+      "category": "Game",
+      "target": [
+        "tar.gz"
+      ],
+      "fileAssociations": [
+        {
+          "ext": "mspr",
+          "description": "Majsoul Plus ResourcePack",
+          "icon": "assets/bin/icons/icon.ico"
+        },
+        {
+          "ext": "mspe",
+          "description": "Majsoul Plus Extension",
+          "icon": "assets/bin/icons/icon.ico"
+        },
+        {
+          "ext": "mspm",
+          "description": "Majsoul Plus Extension",
+          "icon": "assets/bin/icons/icon.ico"
+        },
+        {
+          "ext": "mspt",
+          "description": "Majsoul Plus Tool",
+          "icon": "assets/bin/icons/icon.ico"
+        }
+      ]
     }
   },
-  "standard": {
-    "env": {
-      "browser": true,
-      "commonjs": true,
-      "es6": true,
-      "node": true
-    },
-    "ignore": [
-      "/static/",
-      "/mod/",
-      "/tool/",
-      "/execute"
-    ]
-  },
   "pre-commit": [
-    "lint",
-    "test"
+    "lint"
   ],
   "repository": {
     "type": "git",
@@ -54,22 +99,35 @@
   },
   "homepage": "https://github.com/iamapig120/majsoul-custorm-server#readme",
   "dependencies": {
-    "adm-zip": "^0.4.13",
-    "express": "^4.16.4",
+    "adm-zip": "git+https://github.com/cthackers/adm-zip.git",
+    "ajv": "^6.10.2",
+    "chalk": "^2.4.2",
+    "comma-separated-values": "^3.6.4",
+    "discord-rich-presence": "^0.0.8",
+    "electron-fetch": "^1.4.0",
+    "koa": "^2.11.0",
+    "koa-router": "^7.4.0",
+    "prettier": "^1.19.1",
+    "semver": "^6.3.0",
     "tcp-ping": "^0.1.1"
   },
   "devDependencies": {
-    "cross-env": "^5.2.0",
-    "electron": "^2.0.12",
-    "electron-builder": "^20.38.5",
-    "electron-packager": "^13.0.1",
-    "eslint": "^5.13.0",
-    "eslint-config-standard": "^12.0.0",
-    "eslint-plugin-import": "^2.16.0",
-    "eslint-plugin-node": "^8.0.1",
-    "eslint-plugin-promise": "^4.0.1",
-    "eslint-plugin-standard": "^4.0.0",
-    "snazzy": "^8.0.0",
-    "standard": "^12.0.1"
+    "@types/adm-zip": "^0.4.13",
+    "@types/koa": "^2.11.0",
+    "@types/koa-router": "^7.0.42",
+    "@types/ncp": "^2.0.3",
+    "@types/prettier": "^1.19.0",
+    "@types/semver": "^6.2.0",
+    "@types/tcp-ping": "^0.1.0",
+    "cross-env": "^5.2.1",
+    "electron": "^7.3.1",
+    "electron-builder": "^21.2.0",
+    "gts": "^1.1.2",
+    "ncp": "^2.0.0",
+    "node-sass": "^4.13.1",
+    "run-electron": "^1.0.0",
+    "tslint": "^5.20.1",
+    "typescript": "^3.7.3",
+    "yarn": "^1.22.0"
   }
 }

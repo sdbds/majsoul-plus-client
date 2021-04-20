@@ -4,9 +4,11 @@ os:
 dist: xenial
 osx_image: xcode10.1
 language: node_js
-  - 10
+node_js:
+  - '12'
 cache:
   - apt: true
+  - yarn: true
   - directories:
       - node_modules
       - $HOME/.electron
@@ -16,19 +18,6 @@ addons:
   homebrew:
     packages: zip
 install:
-  - npm install
-  - npm update
+  - yarn
 script:
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then npm run build-linux; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then npm run build-darwin; fi
-after_success: if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then bash pack.sh; fi
-deploy:
-  provider: releases
-  api_key: $GITHUB_TOKEN
-  file: './build/packed/*.{zip,dmg}'
-  file_glob: true
-  skip_cleanup: true
-  on:
-    branch: master
-    tags: true
-    all_branches: true
+  - yarn dist
